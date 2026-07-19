@@ -3,31 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Operação</title>
+    <title>Validação de Recebíveis</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
-        .valor { font-size: 32px; font-weight: bold; color: #2c3e50; margin: 20px 0; }
-        button { background: #007bff; color: white; border: none; padding: 15px 25px; border-radius: 6px; cursor: pointer; font-size: 16px; width: 100%; transition: 0.3s; }
-        button:hover { background: #0056b3; }
-        .status { margin-top: 20px; font-size: 12px; color: #7f8c8d; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 90%; max-width: 450px; text-align: center; }
+        .extenso { font-size: 20px; color: #34495e; margin-bottom: 20px; font-weight: 600; padding: 15px; background: #eef2f7; border-radius: 8px; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background: #219150; }
+        .contador { color: #7f8c8d; margin-top: 15px; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h3>Verificação de Documento</h3>
-    <p>Confirme se o valor abaixo está correto:</p>
-    <div class="valor" id="valorDocumento">R$ 9.432,00</div>
-    <button onclick="proximaTarefa()">Processar e Carregar Próximo</button>
-    <div class="status">Sistema Online - Aguardando validação</div>
+    <h3>Conferência de Lote</h3>
+    <p>Converta o valor por extenso para numérico:</p>
+    <div class="extenso" id="valorExtenso">Nove mil, quatrocentos e trinta e dois reais</div>
+    
+    <input type="text" id="inputValor" placeholder="Ex: 9432,00">
+    <button onclick="verificar()">Confirmar Validação</button>
+    
+    <div class="contador" id="progresso">Operação 1 de 7</div>
 </div>
 
 <script>
-    function proximaTarefa() {
-        // Gera um valor aleatório para a pessoa interagir
-        const novoValor = (Math.random() * 10000).toFixed(2);
-        document.getElementById('valorDocumento').innerText = "R$ " + novoValor.replace('.', ',');
+    let etapa = 1;
+    const desafios = [
+        { ext: "Nove mil, quatrocentos e trinta e dois reais", num: "9432,00" },
+        { ext: "Dois mil e quinhentos reais", num: "2500,00" },
+        { ext: "Cinco mil, oitocentos e noventa reais", num: "5890,00" },
+        { ext: "Sete mil, trezentos e quinze reais", num: "7315,00" },
+        { ext: "Um mil e duzentos reais", num: "1200,00" },
+        { ext: "Quatro mil e sessenta reais", num: "4060,00" },
+        { ext: "Seis mil, novecentos e setenta e cinco reais", num: "6975,00" }
+    ];
+
+    function verificar() {
+        const input = document.getElementById('inputValor').value;
+        const correto = desafios[etapa - 1].num;
+
+        if (input === correto) {
+            etapa++;
+            if (etapa <= 7) {
+                document.getElementById('valorExtenso').innerText = desafios[etapa - 1].ext;
+                document.getElementById('inputValor').value = '';
+                document.getElementById('progresso').innerText = "Operação " + etapa + " de 7";
+                alert("Correto! Próximo documento.");
+            } else {
+                alert("Lote finalizado com sucesso!");
+                location.reload(); // Reinicia o ciclo
+            }
+        } else {
+            alert("Valor incorreto. Tente novamente.");
+        }
     }
 </script>
 
