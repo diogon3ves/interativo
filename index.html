@@ -2,33 +2,36 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validação de Recebíveis</title>
+    <title>Painel de Validação Financeira</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 90%; max-width: 450px; text-align: center; }
-        .extenso { font-size: 20px; color: #34495e; margin-bottom: 20px; font-weight: 600; padding: 15px; background: #eef2f7; border-radius: 8px; }
-        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        button:hover { background: #219150; }
-        .contador { color: #7f8c8d; margin-top: 15px; font-size: 14px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 90%; max-width: 450px; text-align: center; }
+        .extenso { font-size: 20px; color: #2c3e50; margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 1px solid #e9ecef; }
+        .saldo-box { font-size: 18px; color: #27ae60; font-weight: bold; margin-bottom: 20px; }
+        input { width: 100%; padding: 15px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 8px; font-size: 18px; box-sizing: border-box; }
+        button { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        
+        @keyframes flashSuccess {
+            0% { background-color: #fff; }
+            50% { background-color: #d4edda; }
+            100% { background-color: #fff; }
+        }
+        .flash { animation: flashSuccess 0.5s ease-out; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h3>Conferência de Lote</h3>
-    <p>Converta o valor por extenso para numérico:</p>
+<div class="card" id="cardContainer">
+    <h3>Validação de Recebíveis</h3>
+    <div class="saldo-box" id="saldoDisplay">Saldo atual: R$ 0,00</div>
     <div class="extenso" id="valorExtenso">Nove mil, quatrocentos e trinta e dois reais</div>
     
-    <input type="text" id="inputValor" placeholder="Ex: 9432,00">
+    <input type="text" id="inputValor" placeholder="R$ 0,00" oninput="formatarMoeda(this)">
     <button onclick="verificar()">Confirmar Validação</button>
-    
-    <div class="contador" id="progresso">Operação 1 de 7</div>
 </div>
 
 <script>
-    let etapa = 1;
+    let saldo = 0;
     const desafios = [
         { ext: "Nove mil, quatrocentos e trinta e dois reais", num: "9432,00" },
         { ext: "Dois mil e quinhentos reais", num: "2500,00" },
@@ -39,21 +42,35 @@
         { ext: "Seis mil, novecentos e setenta e cinco reais", num: "6975,00" }
     ];
 
-    function verificar() {
-        const input = document.getElementById('inputValor').value;
-        const correto = desafios[etapa - 1].num;
+    function formatarMoeda(i) {
+        let v = i.value.replace(/\D/g, '');
+        v = (v / 100).toFixed(2) + '';
+        v = v.replace(".", ",");
+        v = v.replace(/(\d)(\d{3})(\d{3}),/g, "$1.$2.$3,");
+        v = v.replace(/(\d)(\d{3}),/g, "$1.$2,");
+        i.value = v ? 'R$ ' + v : '';
+    }
 
-        if (input === correto) {
-            etapa++;
-            if (etapa <= 7) {
-                document.getElementById('valorExtenso').innerText = desafios[etapa - 1].ext;
-                document.getElementById('inputValor').value = '';
-                document.getElementById('progresso').innerText = "Operação " + etapa + " de 7";
-                alert("Correto! Próximo documento.");
-            } else {
-                alert("Lote finalizado com sucesso!");
-                location.reload(); // Reinicia o ciclo
-            }
+    function verificar() {
+        const input = document.getElementById('inputValor').value.replace('R$ ', '').replace('.', '').replace(',', '.');
+        const correto = desafios[saldo].num;
+
+        if (parseFloat(input).toFixed(2) === parseFloat(correto).toFixed(2)) {
+            saldo++;
+            document.getElementById('saldoDisplay').innerText = "Saldo atual: R$ " + saldo.toFixed(2).replace('.', ',');
+            const card = document.getElementById('cardContainer');
+            card.classList.add('flash');
+            
+            setTimeout(() => {
+                card.classList.remove('flash');
+                if (saldo < 7) {
+                    document.getElementById('valorExtenso').innerText = desafios[saldo].ext;
+                    document.getElementById('inputValor').value = '';
+                } else {
+                    alert("Meta de R$ 7,00 atingida! Lote finalizado.");
+                    location.reload();
+                }
+            }, 500);
         } else {
             alert("Valor incorreto. Tente novamente.");
         }
